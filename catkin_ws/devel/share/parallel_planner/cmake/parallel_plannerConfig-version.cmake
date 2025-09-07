@@ -1,0 +1,1 @@
+/home/kal1b/catkin_ws/devel/.private/parallel_planner/share/parallel_planner/cmake/parallel_plannerConfig-version.cmake

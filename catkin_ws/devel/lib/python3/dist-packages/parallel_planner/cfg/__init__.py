@@ -1,0 +1,1 @@
+/home/kal1b/catkin_ws/devel/.private/parallel_planner/lib/python3/dist-packages/parallel_planner/cfg/__init__.py

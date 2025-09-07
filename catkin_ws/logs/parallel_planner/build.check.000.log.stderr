@@ -1,0 +1,8 @@
+[31m[1mCMake Error[0m at /opt/ros/noetic/share/dynamic_reconfigure/cmake/dynamic_reconfigure-macros.cmake:3 (message):
+  generate_dynamic_reconfigure_options() must be called before
+  catkin_package() in project 'parallel_planner'
+[36mCall Stack (most recent call first):[0m
+  CMakeLists.txt:47 (generate_dynamic_reconfigure_options)
+
+
+make: *** [Makefile:1224: cmake_check_build_system] Ошибка 1
