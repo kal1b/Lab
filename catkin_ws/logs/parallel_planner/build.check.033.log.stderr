@@ -1,0 +1,29 @@
+[31m[1mCMake Error[0m at /home/kal1b/catkin_ws/src/avoidance/parallel_planner/CMakeLists.txt:30 (add_dependencies):
+  Cannot add target-level dependencies to non-existent target
+  "kalman_filter_node".
+
+  The add_dependencies works for top-level logical targets created by the
+  add_executable, add_library, or add_custom_target commands.  If you want to
+  add file-level dependencies see the DEPENDS option of the add_custom_target
+  and add_custom_command commands.
+
+
+[31m[1mCMake Error[0m at /home/kal1b/catkin_ws/src/avoidance/parallel_planner/CMakeLists.txt:35 (add_dependencies):
+  Cannot add target-level dependencies to non-existent target "dsm_node".
+
+  The add_dependencies works for top-level logical targets created by the
+  add_executable, add_library, or add_custom_target commands.  If you want to
+  add file-level dependencies see the DEPENDS option of the add_custom_target
+  and add_custom_command commands.
+
+
+[31m[1mCMake Error[0m at /home/kal1b/catkin_ws/src/avoidance/parallel_planner/CMakeLists.txt:40 (add_dependencies):
+  Cannot add target-level dependencies to non-existent target "vfh_node".
+
+  The add_dependencies works for top-level logical targets created by the
+  add_executable, add_library, or add_custom_target commands.  If you want to
+  add file-level dependencies see the DEPENDS option of the add_custom_target
+  and add_custom_command commands.
+
+
+make: *** [Makefile:1628: cmake_check_build_system] Ошибка 1

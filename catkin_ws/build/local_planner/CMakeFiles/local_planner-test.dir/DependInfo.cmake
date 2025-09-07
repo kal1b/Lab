@@ -1,0 +1,51 @@
+# The set of languages for which implicit dependencies are needed:
+set(CMAKE_DEPENDS_LANGUAGES
+  "CXX"
+  )
+# The set of files for implicit dependencies of each language:
+set(CMAKE_DEPENDS_CHECK_CXX
+  "/home/kal1b/catkin_ws/src/avoidance/local_planner/test/main.cpp" "/home/kal1b/catkin_ws/build/local_planner/CMakeFiles/local_planner-test.dir/test/main.cpp.o"
+  "/home/kal1b/catkin_ws/src/avoidance/local_planner/test/test_example.cpp" "/home/kal1b/catkin_ws/build/local_planner/CMakeFiles/local_planner-test.dir/test/test_example.cpp.o"
+  "/home/kal1b/catkin_ws/src/avoidance/local_planner/test/test_local_planner.cpp" "/home/kal1b/catkin_ws/build/local_planner/CMakeFiles/local_planner-test.dir/test/test_local_planner.cpp.o"
+  "/home/kal1b/catkin_ws/src/avoidance/local_planner/test/test_planner_functions.cpp" "/home/kal1b/catkin_ws/build/local_planner/CMakeFiles/local_planner-test.dir/test/test_planner_functions.cpp.o"
+  "/home/kal1b/catkin_ws/src/avoidance/local_planner/test/test_star_planner.cpp" "/home/kal1b/catkin_ws/build/local_planner/CMakeFiles/local_planner-test.dir/test/test_star_planner.cpp.o"
+  "/home/kal1b/catkin_ws/src/avoidance/local_planner/test/test_trajectory_simulator.cpp" "/home/kal1b/catkin_ws/build/local_planner/CMakeFiles/local_planner-test.dir/test/test_trajectory_simulator.cpp.o"
+  "/home/kal1b/catkin_ws/src/avoidance/local_planner/test/test_waypoint_generator.cpp" "/home/kal1b/catkin_ws/build/local_planner/CMakeFiles/local_planner-test.dir/test/test_waypoint_generator.cpp.o"
+  )
+set(CMAKE_CXX_COMPILER_ID "GNU")
+
+# Preprocessor definitions for this target.
+set(CMAKE_TARGET_DEFINITIONS_CXX
+  "ROSCONSOLE_BACKEND_LOG4CXX"
+  "ROS_BUILD_SHARED_LIBS=1"
+  "ROS_PACKAGE_NAME=\"local_planner\""
+  "qh_QHpointer"
+  "vtkRenderingContext2D_AUTOINIT=1(vtkRenderingContextOpenGL2)"
+  "vtkRenderingCore_AUTOINIT=3(vtkInteractionStyle,vtkRenderingFreeType,vtkRenderingOpenGL2)"
+  )
+
+# The include file search paths:
+set(CMAKE_CXX_TARGET_INCLUDE_PATH
+  "/home/kal1b/catkin_ws/devel/.private/local_planner/include"
+  "/usr/include/vtk-7.1"
+  "/usr/include/freetype2"
+  "/home/kal1b/catkin_ws/src/avoidance/local_planner/include"
+  "/home/kal1b/catkin_ws/src/avoidance/avoidance/include"
+  "/opt/ros/noetic/include"
+  "/opt/ros/noetic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp"
+  "/usr/include/eigen3"
+  "/usr/include/pcl-1.10"
+  "/usr/include/ni"
+  "/usr/include/openni2"
+  "/usr/src/googletest/googletest/include"
+  "/usr/src/googletest/googletest"
+  )
+
+# Targets to which this target links.
+set(CMAKE_TARGET_LINKED_INFO_FILES
+  "/home/kal1b/catkin_ws/build/local_planner/gtest/googletest/CMakeFiles/gtest.dir/DependInfo.cmake"
+  "/home/kal1b/catkin_ws/build/local_planner/CMakeFiles/local_planner.dir/DependInfo.cmake"
+  )
+
+# Fortran module output directory.
+set(CMAKE_Fortran_TARGET_MODULE_DIR "")

@@ -1,0 +1,13 @@
+[31m[1mCMake Error[0m at /home/kal1b/catkin_ws/src/avoidance/parallel_planner/CMakeLists.txt:23 (include_directories):
+  Syntax error in cmake code at
+
+    /home/kal1b/catkin_ws/src/avoidance/parallel_planner/CMakeLists.txt:26
+
+  when parsing string
+
+    ${{PROJE
+
+  syntax error, unexpected $end, expecting }} (7)
+
+
+make: *** [Makefile:1628: cmake_check_build_system] Ошибка 1

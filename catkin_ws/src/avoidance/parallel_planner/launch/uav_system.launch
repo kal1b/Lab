@@ -1,0 +1,73 @@
+<launch>
+  <!-- Параметры -->
+  <arg name="world" default="$(find avoidance)/sim/worlds/simple_obstacle.world"/>
+  <arg name="gui" default="true"/>
+  <arg name="vehicle" default="iris_stereo_camera"/>
+  <arg name="est" default="lpe"/> <!-- estimator (local position estimator) -->
+  <arg name="fcu_url" default="udp://:14540@localhost:14557"/>
+  <arg name="gcs_url" default="" />
+  <arg name="tgt_system" default="1"/>
+  <arg name="tgt_component" default="1"/>
+  
+  <!-- Используем /use_sim_time чтобы ROS работал с симуляционным временем Gazebo -->
+  <param name="use_sim_time" value="true"/>
+
+  <!-- 1. Запуск PX4 SITL с нужной моделью дрона -->
+  <include file="$(find px4)/launch/px4.launch">
+    <arg name="vehicle" value="$(arg vehicle)"/>
+    <arg name="est" value="$(arg est)"/>
+  </include>
+
+  <!-- 2. Запуск MAVROS -->
+  <group ns="">
+    <include file="$(find mavros)/launch/node.launch">
+      <arg name="fcu_url" value="$(arg fcu_url)"/>
+      <arg name="gcs_url" value="$(arg gcs_url)"/>
+      <arg name="tgt_system" value="$(arg tgt_system)"/>
+      <arg name="tgt_component" value="$(arg tgt_component)"/>
+      <!-- подключаем кастомный конфиг с frame_id для локальной рамки -->
+      <arg name="config_yaml" value="$(find avoidance)/resource/px4_config.yaml"/>
+      <arg name="pluginlists_yaml" value="$(find mavros)/launch/px4_pluginlists.yaml"/>
+    </include>
+  </group>
+
+  <!-- 3. Запуск Gazebo мира -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(arg world)"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="$(arg gui)"/>
+  </include>
+
+  <!-- 4. Спавн модели дрона -->
+  <node name="spawn_model" pkg="gazebo_ros" type="spawn_model" output="screen"
+        args="-sdf -model uav -x 0 -y 0 -z 0 -file $(find px4)/tools/sitl_gazebo/models/$(arg vehicle)/$(arg vehicle).sdf" />
+
+  <!-- 5. Публикация статического TF от fcu к camera_link (для совместимости с MAVROS frames) -->
+  <node name="tf_depth_camera" pkg="tf" type="static_transform_publisher" args="0 0 0 -1.57 0 -1.57 fcu camera_link 100" />
+
+  <!-- 6. Обработка стереоизображений в облако точек (если используем stereo_camera) -->
+  <node name="stereo_image_proc" pkg="stereo_image_proc" type="stereo_image_proc" output="screen" ns="stereo">
+    <param name="approximate_sync" type="bool" value="true"/>
+    <!-- параметры алгоритма корреляции, можно оставить по умолчанию -->
+  </node>
+
+  <!-- 7. Запуск узлов уклонения -->
+  <node name="kalman_filter_node" pkg="avoidance" type="kalman_filter_node" output="screen"/>
+  <node name="dsm_node" pkg="avoidance" type="dsm_node" output="screen">
+    <!-- Пример настройки параметров DSM Node -->
+    <param name="inflation_radius" value="0.5" />
+    <param name="inflation_radius_max" value="1.5" />
+    <param name="inflation_dist_thresh" value="4.0" />
+  </node>
+  <node name="vfh_node" pkg="avoidance" type="vfh_node" output="screen">
+    <param name="sector_angle_deg" value="5.0" />
+    <param name="hysteresis_gain" value="2.0" />
+    <param name="max_horizontal_angle" value="60.0" />
+    <param name="step_distance" value="2.0" />
+  </node>
+
+  <!-- 8. (Опционально) RQT для динамической перенастройки, если реализовано -->
+  <!-- <node pkg="rqt_reconfigure" type="rqt_reconfigure" name="rqt_reconfigure" /> -->
+</launch>
+

@@ -1,0 +1,53 @@
+[31m[1mCMake Error[0m at /home/kal1b/catkin_ws/src/avoidance/parallel_planner/CMakeLists.txt:37 (add_executable):
+  Cannot find source file:
+
+    src/vfh_node.cpp
+
+  Tried extensions .c .C .c++ .cc .cpp .cxx .cu .m .M .mm .h .hh .h++ .hm
+  .hpp .hxx .in .txx
+
+
+[31m[1mCMake Error[0m at /home/kal1b/catkin_ws/src/avoidance/parallel_planner/CMakeLists.txt:34 (add_executable):
+  Cannot find source file:
+
+    src/dsm_node.cpp
+
+  Tried extensions .c .C .c++ .cc .cpp .cxx .cu .m .M .mm .h .hh .h++ .hm
+  .hpp .hxx .in .txx
+
+
+[31m[1mCMake Error[0m at /home/kal1b/catkin_ws/src/avoidance/parallel_planner/CMakeLists.txt:40 (add_executable):
+  Cannot find source file:
+
+    src/parallel_planner_node.cpp
+
+  Tried extensions .c .C .c++ .cc .cpp .cxx .cu .m .M .mm .h .hh .h++ .hm
+  .hpp .hxx .in .txx
+
+
+[31m[1mCMake Error[0m at /home/kal1b/catkin_ws/src/avoidance/parallel_planner/CMakeLists.txt:31 (add_executable):
+  Cannot find source file:
+
+    src/kalman_filter_node.cpp
+
+  Tried extensions .c .C .c++ .cc .cpp .cxx .cu .m .M .mm .h .hh .h++ .hm
+  .hpp .hxx .in .txx
+
+
+[31m[1mCMake Error[0m at /home/kal1b/catkin_ws/src/avoidance/parallel_planner/CMakeLists.txt:37 (add_executable):
+  No SOURCES given to target: vfh_node
+
+
+[31m[1mCMake Error[0m at /home/kal1b/catkin_ws/src/avoidance/parallel_planner/CMakeLists.txt:34 (add_executable):
+  No SOURCES given to target: dsm_node
+
+
+[31m[1mCMake Error[0m at /home/kal1b/catkin_ws/src/avoidance/parallel_planner/CMakeLists.txt:40 (add_executable):
+  No SOURCES given to target: parallel_planner_node
+
+
+[31m[1mCMake Error[0m at /home/kal1b/catkin_ws/src/avoidance/parallel_planner/CMakeLists.txt:31 (add_executable):
+  No SOURCES given to target: kalman_filter_node
+
+
+CMake Generate step failed.  Build files cannot be regenerated correctly.

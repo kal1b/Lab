@@ -1,0 +1,8 @@
+[01m[K/home/kal1b/catkin_ws/src/avoidance/parallel_planner/src/nodes/vfh_node.cpp:10:10:[m[K [01;31m[Kfatal error: [m[Kparallel_planner/PlannerConfig.h: Нет такого файла или каталога
+   10 | #include [01;31m[K<parallel_planner/PlannerConfig.h>[m[K
+      |          [01;31m[K^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+compilation terminated.
+make[2]: *** [CMakeFiles/vfh_node.dir/build.make:63: CMakeFiles/vfh_node.dir/src/nodes/vfh_node.cpp.o] Ошибка 1
+make[1]: *** [CMakeFiles/Makefile2:251: CMakeFiles/vfh_node.dir/all] Ошибка 2
+make[1]: *** Ожидание завершения заданий…
+make: *** [Makefile:141: all] Ошибка 2

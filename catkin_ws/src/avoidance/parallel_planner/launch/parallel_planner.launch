@@ -1,0 +1,93 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="world" default="$(find avoidance)/sim/worlds/test_city_2.world"/>
+  <arg name="model" default="$(find avoidance)/sim/models/iris_stereo_camera/iris_stereo_camera.sdf"/>
+
+  <!-- Launch Gazebo -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(arg world)"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+  </include>
+
+  <!-- UAV1 -->
+  <group ns="uav1">
+    <param name="use_sim_time" value="true"/>
+
+    <node name="uav1_spawn_iris" pkg="gazebo_ros" type="spawn_model" output="screen"
+          args="-sdf -file $(arg model) -model uav1 -x 0 -y 0 -z 1"/>
+
+    <include file="$(find mavros)/launch/px4.launch">
+      <arg name="fcu_url" value="udp://:14540@127.0.0.1:14557"/>
+      <arg name="gcs_url" value="" />
+      <arg name="tgt_system" value="1"/>
+      <arg name="tgt_component" value="1"/>
+    </include>
+
+    <node pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_proc" ns="stereo"/>
+
+    <node pkg="topic_tools" type="relay" name="relay_pointcloud" args="/stereo/points2 /uav1/point_cloud"/>
+
+    <node pkg="topic_tools" type="relay" name="control_relay" args="/uav1/control_cmd /uav1/mavros/setpoint_velocity/cmd_vel"/>
+
+    <node pkg="parallel_planner" type="vfh_node" name="vfh_node"/>
+    <node pkg="parallel_planner" type="kalman_filter_node" name="kalman_filter_node"/>
+    <node pkg="parallel_planner" type="dsm_node" name="dsm_node"/>
+  </group>
+
+  <!-- UAV2 -->
+  <group ns="uav2">
+    <param name="use_sim_time" value="true"/>
+
+    <node name="uav2_spawn_iris" pkg="gazebo_ros" type="spawn_model" output="screen"
+          args="-sdf -file $(arg model) -model uav2 -x 2 -y 0 -z 1"/>
+
+    <include file="$(find mavros)/launch/px4.launch">
+      <arg name="fcu_url" value="udp://:14542@127.0.0.1:14552"/>
+      <arg name="gcs_url" value="" />
+      <arg name="tgt_system" value="2"/>
+      <arg name="tgt_component" value="1"/>
+    </include>
+
+    <node pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_proc" ns="stereo"/>
+
+    <node pkg="topic_tools" type="relay" name="relay_pointcloud" args="/stereo/points2 /uav2/point_cloud"/>
+
+    <node pkg="topic_tools" type="relay" name="control_relay" args="/uav2/control_cmd /uav2/mavros/setpoint_velocity/cmd_vel"/>
+
+    <node pkg="parallel_planner" type="vfh_node" name="vfh_node"/>
+    <node pkg="parallel_planner" type="kalman_filter_node" name="kalman_filter_node"/>
+    <node pkg="parallel_planner" type="dsm_node" name="dsm_node"/>
+  </group>
+
+  <!-- UAV3 -->
+  <group ns="uav3">
+    <param name="use_sim_time" value="true"/>
+
+    <node name="uav3_spawn_iris" pkg="gazebo_ros" type="spawn_model" output="screen"
+          args="-sdf -file $(arg model) -model uav3 -x -2 -y 0 -z 1"/>
+
+    <include file="$(find mavros)/launch/px4.launch">
+      <arg name="fcu_url" value="udp://:14544@127.0.0.1:14554"/>
+      <arg name="gcs_url" value="" />
+      <arg name="tgt_system" value="3"/>
+      <arg name="tgt_component" value="1"/>
+    </include>
+
+    <node pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_proc" ns="stereo"/>
+
+    <node pkg="topic_tools" type="relay" name="relay_pointcloud" args="/stereo/points2 /uav3/point_cloud"/>
+
+    <node pkg="topic_tools" type="relay" name="control_relay" args="/uav3/control_cmd /uav3/mavros/setpoint_velocity/cmd_vel"/>
+
+    <node pkg="parallel_planner" type="vfh_node" name="vfh_node"/>
+    <node pkg="parallel_planner" type="kalman_filter_node" name="kalman_filter_node"/>
+    <node pkg="parallel_planner" type="dsm_node" name="dsm_node"/>
+  </group>
+  
+  <!-- RViz -->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find parallel_planner)/resource/parallel_planner.rviz" />
+</launch>
+

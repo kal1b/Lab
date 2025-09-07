@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/kal1b/catkin_ws/devel/.private/safe_landing_planner/setup.sh

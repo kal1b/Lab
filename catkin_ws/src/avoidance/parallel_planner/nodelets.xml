@@ -1,0 +1,8 @@
+<library path="lib/libparallel_planner_node">
+    <class name="ParallelPlannerNode" type="avoidance::ParallelPlannerNode" base_class_type="nodelet::Node">
+        <description>
+            Local planner node
+        </description>
+    </class>
+
+</library>

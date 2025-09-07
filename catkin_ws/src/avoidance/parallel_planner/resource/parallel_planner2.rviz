@@ -1,0 +1,83 @@
+Panels:
+  - Class: rviz/Displays
+    Name: Displays
+  - Class: rviz/Selection
+    Name: Selection
+  - Class: rviz/Tool Properties
+    Name: Tool Properties
+  - Class: rviz/ViewManager
+    Name: Views
+
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz/TF
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Frame Timeout: 10.0
+    - Class: rviz/Axes
+      Name: World Axes
+      Frame: world
+      Length: 1.0
+      Radius: 0.02
+    - Class: rviz/Axes
+      Name: UAV1 FCU Axes
+      Frame: uav1/fcu
+      Length: 0.6
+      Radius: 0.03
+    - Class: rviz/Axes
+      Name: UAV2 FCU Axes
+      Frame: uav2/fcu
+      Length: 0.6
+      Radius: 0.03
+    - Class: rviz/Axes
+      Name: UAV3 FCU Axes
+      Frame: uav3/fcu
+      Length: 0.6
+      Radius: 0.03
+    - Class: rviz/PointCloud2
+      Name: UAV1 Point Cloud
+      Topic: /uav1/point_cloud
+      Queue Size: 10
+    - Class: rviz/PointCloud2
+      Name: UAV2 Point Cloud
+      Topic: /uav2/point_cloud
+      Queue Size: 10
+    - Class: rviz/PointCloud2
+      Name: UAV3 Point Cloud
+      Topic: /uav3/point_cloud
+      Queue Size: 10
+    - Class: rviz/Marker
+      Name: Goal Position
+      Topic: /goal_position
+    - Class: rviz/Marker
+      Name: Waypoint Path
+      Topic: /path_waypoint
+    - Class: rviz/Marker
+      Name: Actual Path
+      Topic: /path_actual
+  Enabled: true
+  Global Options:
+    Background Color: 48;48;48
+    Fixed Frame: parallel_origin
+    Frame Rate: 30
+  Name: root
+  Tools:
+    - Class: rviz/Interact
+    - Class: rviz/MoveCamera
+    - Class: rviz/Select
+    - Class: rviz/FocusCamera
+    - Class: rviz/Measure
+    - Class: rviz/SetInitialPose
+    - Class: rviz/SetGoal
+  Value: true
+  Views:
+    Current:
+      Class: rviz/Orbit
+      Focal Point: 0;0;1
+      Distance: 20
+      Pitch: 0.7
+      Yaw: 0.7
+      Target Frame: world
+

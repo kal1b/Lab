@@ -1,0 +1,19 @@
+[01m[K/home/kal1b/catkin_ws/src/avoidance/parallel_planner/src/nodes/kalman_filter_node.cpp:5:10:[m[K [01;31m[Kfatal error: [m[KEigen/Dense: Нет такого файла или каталога
+    5 | #include [01;31m[K<Eigen/Dense>[m[K
+      |          [01;31m[K^~~~~~~~~~~~~[m[K
+compilation terminated.
+[01m[K/home/kal1b/catkin_ws/src/avoidance/parallel_planner/src/nodes/vfh_node.cpp:10:10:[m[K [01;31m[Kfatal error: [m[Kparallel_planner/PlannerConfig.h: Нет такого файла или каталога
+   10 | #include [01;31m[K<parallel_planner/PlannerConfig.h>[m[K
+      |          [01;31m[K^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+compilation terminated.
+make[2]: *** [CMakeFiles/kalman_filter_node.dir/build.make:63: CMakeFiles/kalman_filter_node.dir/src/nodes/kalman_filter_node.cpp.o] Ошибка 1
+make[1]: *** [CMakeFiles/Makefile2:1819: CMakeFiles/kalman_filter_node.dir/all] Ошибка 2
+make[1]: *** Ожидание завершения заданий…
+make[2]: *** [CMakeFiles/vfh_node.dir/build.make:63: CMakeFiles/vfh_node.dir/src/nodes/vfh_node.cpp.o] Ошибка 1
+make[1]: *** [CMakeFiles/Makefile2:199: CMakeFiles/vfh_node.dir/all] Ошибка 2
+/usr/bin/ld: CMakeFiles/parallel_planner_node.dir/src/nodes/parallel_planner_node.cpp.o: в функции «main»:
+parallel_planner_node.cpp:(.text+0x223): неопределённая ссылка на «parallel_planner::ParallelPlannerNode::ParallelPlannerNode(ros::NodeHandle&, ros::NodeHandle&)»
+collect2: error: ld returned 1 exit status
+make[2]: *** [CMakeFiles/parallel_planner_node.dir/build.make:107: /home/kal1b/catkin_ws/devel/.private/parallel_planner/lib/parallel_planner/parallel_planner_node] Ошибка 1
+make[1]: *** [CMakeFiles/Makefile2:523: CMakeFiles/parallel_planner_node.dir/all] Ошибка 2
+make: *** [Makefile:141: all] Ошибка 2

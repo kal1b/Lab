@@ -1,0 +1,42 @@
+<launch>
+  <!-- Настройка MAVROS: подключение к автопилоту (SITL) -->
+  <arg name="fcu_url" default="udp://:14540@127.0.0.1:14557" doc="URL подключения к FCU (PX4 SITL по умолчанию)" />
+  <arg name="use_px4" default="true" />
+
+  <!-- MAVROS для PX4 SITL -->
+  <group if="$(arg use_px4)">
+    <include file="$(find mavros)/launch/px4.launch">
+      <arg name="fcu_url" value="$(arg fcu_url)" />
+      <arg name="gcs_url" value="" />
+      <arg name="target_system" value="1" />
+      <arg name="target_component" value="1" />
+    </include>
+  </group>
+
+  <!-- MAVROS для ArduPilot SITL (если используется ArduCopter) -->
+  <group unless="$(arg use_px4)">
+    <include file="$(find mavros)/launch/apm.launch">
+      <arg name="fcu_url" value="udp://127.0.0.1:14551@14555" />
+    </include>
+  </group>
+
+  <!-- Запуск узлов фильтра Калмана, DSM и VFH+ -->
+  <node pkg="uav_package" type="kalman_filter_node" name="kalman_filter_node" output="screen">
+    <param name="process_noise_cov" value="0.1" />
+    <param name="measurement_noise_cov" value="0.5" />
+  </node>
+
+  <node pkg="uav_package" type="dsm_node" name="dsm_node" output="screen">
+    <param name="max_accel" value="2.0" />
+    <param name="max_tilt" value="30.0" />
+    <param name="max_yaw_rate" value="0.5" />
+  </node>
+
+  <node pkg="uav_package" type="vfh_node" name="vfh_node" output="screen">
+    <param name="histogram_bins" value="72" />
+    <param name="safety_distance" value="5.0" />
+    <param name="forward_speed" value="1.0" />
+    <param name="max_yaw_rate" value="0.5" />
+  </node>
+</launch>
+

@@ -1,0 +1,19 @@
+mavros:
+  plugin_blacklist: []
+  plugin_whitelist: [
+    "imu",
+    "rc_io",
+    "sys_status",
+    "sys_time",
+    "local_position",
+    "global_position",
+    "setpoint_position",
+    "setpoint_velocity",
+    "setpoint_raw",
+    "setpoint_attitude",
+    "command",
+    "param",
+    "mission",
+    "state"
+  ]
+
