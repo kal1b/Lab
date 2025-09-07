@@ -1,1 +1,0 @@
-set(ORDERED_PATHS "/home/kal1b/catkin_ws/devel/.private/avoidance/lib;/opt/ros/noetic/lib")

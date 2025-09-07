@@ -1,5 +1,0 @@
-[31m[1mCMake Error[0m at /home/kal1b/catkin_ws/src/avoidance/parallel_planner/CMakeLists.txt:29 (rosbuild_add_executable):
-  Unknown CMake command "rosbuild_add_executable".
-
-
-make: *** [Makefile:1628: cmake_check_build_system] Ошибка 1

@@ -1,1 +1,0 @@
-/home/kal1b/catkin_ws/devel/.private/local_planner/lib/python3/dist-packages/local_planner/cfg/LocalPlannerNodeConfig.py

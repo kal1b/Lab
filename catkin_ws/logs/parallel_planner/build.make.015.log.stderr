@@ -1,9 +1,0 @@
-In file included from [01m[K/home/kal1b/catkin_ws/src/avoidance/parallel_planner/src/nodes/vfh_node.cpp:4[m[K:
-[01m[K/opt/ros/noetic/include/pcl_ros/point_cloud.h:5:10:[m[K [01;31m[Kfatal error: [m[Kpcl/point_cloud.h: Нет такого файла или каталога
-    5 | #include [01;31m[K<pcl/point_cloud.h>[m[K
-      |          [01;31m[K^~~~~~~~~~~~~~~~~~~[m[K
-compilation terminated.
-make[2]: *** [CMakeFiles/vfh_node.dir/build.make:63: CMakeFiles/vfh_node.dir/src/nodes/vfh_node.cpp.o] Ошибка 1
-make[1]: *** [CMakeFiles/Makefile2:226: CMakeFiles/vfh_node.dir/all] Ошибка 2
-make[1]: *** Ожидание завершения заданий…
-make: *** [Makefile:141: all] Ошибка 2

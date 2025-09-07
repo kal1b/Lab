@@ -1,6 +1,0 @@
-devel_space: /home/kal1b/catkin_ws/devel
-install: false
-install_space: /home/kal1b/catkin_ws/install
-profile: default
-source_space: /home/kal1b/catkin_ws/src
-workspace: /home/kal1b/catkin_ws

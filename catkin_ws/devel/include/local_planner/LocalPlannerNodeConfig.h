@@ -1,1 +1,0 @@
-/home/kal1b/catkin_ws/devel/.private/local_planner/include/local_planner/LocalPlannerNodeConfig.h
