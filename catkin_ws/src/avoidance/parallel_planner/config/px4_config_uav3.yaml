@@ -1,0 +1,7 @@
+mavros:
+  tf:
+    send: true
+    frame_id: "map"
+    child_frame_id: "uav3/base_link"
+  fcu:
+    frame: "uav3/fcu"

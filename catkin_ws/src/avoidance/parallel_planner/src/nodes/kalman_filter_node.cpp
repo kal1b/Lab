@@ -2,17 +2,13 @@
 #include <sensor_msgs/Imu.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <Eigen/Dense>
+#include <string>
 
-// Глобальный паблишер для состояния
+// Глобальные объекты и параметры фильтра Калмана
 ros::Publisher state_pub;
-
-// Параметры фильтра Калмана (упрощённый пример)
-// Предположим, что состояние состоит из 3-х компонент скорости: [vx, vy, vz]
 Eigen::VectorXd x;         // Оценка состояния (скорости)
 Eigen::MatrixXd P;         // Ковариация оценки
-
-// Матрицы фильтра (для простоты используем идентичные модели)
-Eigen::MatrixXd A;         // Модель перехода (здесь - тождественная)
+Eigen::MatrixXd A;         // Модель перехода (тождественная)
 Eigen::MatrixXd Q;         // Ковариация процесса
 Eigen::MatrixXd H;         // Матрица измерения (тождественная)
 Eigen::MatrixXd R;         // Ковариация измерений
@@ -20,17 +16,23 @@ Eigen::MatrixXd R;         // Ковариация измерений
 bool is_initialized = false;
 ros::Time last_time;
 
+double initial_covariance = 1.0;
+double process_noise = 0.1;
+double measurement_noise = 0.5;
+double min_dt = 0.01;
+std::string frame_id = "base_link";
+
 void initKalmanFilter()
 {
   int n = 3; // число параметров (скорости по x, y, z)
   x = Eigen::VectorXd::Zero(n);
-  P = Eigen::MatrixXd::Identity(n, n) * 1.0;
+  P = Eigen::MatrixXd::Identity(n, n) * initial_covariance;
 
   A = Eigen::MatrixXd::Identity(n, n);
-  Q = Eigen::MatrixXd::Identity(n, n) * 0.1;
+  Q = Eigen::MatrixXd::Identity(n, n) * process_noise;
 
   H = Eigen::MatrixXd::Identity(n, n);
-  R = Eigen::MatrixXd::Identity(n, n) * 0.5;
+  R = Eigen::MatrixXd::Identity(n, n) * measurement_noise;
 
   is_initialized = true;
 }
@@ -65,7 +67,7 @@ void imuCallback(const sensor_msgs::Imu::ConstPtr &msg)
 
   ros::Time current_time = msg->header.stamp;
   double dt = (current_time - last_time).toSec();
-  if (dt <= 0) dt = 0.01; // защита от нулевого интервала
+  if (dt <= 0) dt = min_dt; // защита от нулевого интервала
   last_time = current_time;
 
   // Предсказание
@@ -84,7 +86,7 @@ void imuCallback(const sensor_msgs::Imu::ConstPtr &msg)
   // Подготовка и публикация сообщения состояния
   geometry_msgs::TwistStamped state_msg;
   state_msg.header.stamp = current_time;
-  state_msg.header.frame_id = "base_link";  // можно изменить на нужный frame
+  state_msg.header.frame_id = frame_id;
   state_msg.twist.linear.x = x(0);
   state_msg.twist.linear.y = x(1);
   state_msg.twist.linear.z = x(2);
@@ -95,10 +97,16 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "kalman_filter_node");
   ros::NodeHandle nh;
+  ros::NodeHandle pnh("~");
 
-  // Изменённый выходной топик: /uav/state_estimate
-  state_pub = nh.advertise<geometry_msgs::TwistStamped>("/uav/state_estimate", 10);
-  ros::Subscriber imu_sub = nh.subscribe("imu/data", 10, imuCallback);
+  pnh.param("initial_covariance", initial_covariance, 1.0);
+  pnh.param("process_noise", process_noise, 0.1);
+  pnh.param("measurement_noise", measurement_noise, 0.5);
+  pnh.param("min_dt", min_dt, 0.01);
+  pnh.param<std::string>("frame_id", frame_id, "base_link");
+
+  state_pub = nh.advertise<geometry_msgs::TwistStamped>("state_estimate", 10);
+  ros::Subscriber imu_sub = nh.subscribe("mavros/imu/data", 10, imuCallback);
 
   // Задаём постоянную частоту публикации (например, 50 Гц)
   ros::Rate loop_rate(50);
