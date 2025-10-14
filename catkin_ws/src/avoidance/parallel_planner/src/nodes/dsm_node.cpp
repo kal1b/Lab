@@ -5,6 +5,7 @@
 // Параметры ограничений (можно задать через параметрический сервер)
 double max_linear_acc = 1.0;   // максимальное линейное ускорение (м/с^2)
 double max_angular_acc = 0.5;  // максимальное угловое ускорение (рад/с^2)
+double control_dt = 0.02;      // шаг интегрирования (с)
 
 // Глобальные переменные для хранения последней полученной команды и состояния
 geometry_msgs::Twist latest_nav_cmd;
@@ -25,14 +26,14 @@ double clamp(double value, double min_val, double max_val)
     return value;
 }
 
-// Callback для входящего топика навигационных команд (/uav/navigation_cmd)
+// Callback для входящего топика навигационных команд
 void navCmdCallback(const geometry_msgs::Twist::ConstPtr &msg)
 {
     latest_nav_cmd = *msg;
     nav_cmd_received = true;
 }
 
-// Callback для оценки состояния (/uav/state_estimate)
+// Callback для оценки состояния
 void stateCallback(const geometry_msgs::TwistStamped::ConstPtr &msg)
 {
     latest_state = *msg;
@@ -46,8 +47,7 @@ void modulateAndPublishCommand()
         return;
 
     geometry_msgs::Twist modulated_cmd;
-    // Предположим, что цикл работает на 50 Гц (dt ≈ 0.02 сек)
-    double dt = 0.02;
+    double dt = control_dt;
 
     // Ограничение для линейной компоненты по оси X
     double curr_vx = latest_state.twist.linear.x;
@@ -98,15 +98,21 @@ int main(int argc, char **argv)
     // Чтение параметров ограничений из параметрического сервера
     pnh.param("max_linear_acc", max_linear_acc, 1.0);
     pnh.param("max_angular_acc", max_angular_acc, 0.5);
+    pnh.param("control_dt", control_dt, 0.02);
 
     // Подписка на входные топики:
-    // 1. Навигационные команды от планировщика (/uav/navigation_cmd)
-    ros::Subscriber nav_cmd_sub = nh.subscribe("/uav/navigation_cmd", 10, navCmdCallback);
-    // 2. Оценка состояния от фильтра Калмана (/uav/state_estimate)
-    ros::Subscriber state_sub = nh.subscribe("/uav/state_estimate", 10, stateCallback);
+    // 1. Навигационные команды от планировщика
+    ros::Subscriber nav_cmd_sub = nh.subscribe("navigation_cmd", 10, navCmdCallback);
+    // 2. Оценка состояния от фильтра Калмана
+    ros::Subscriber state_sub = nh.subscribe("state_estimate", 10, stateCallback);
 
-    // Публикация модулированной команды управления на топик /uav/control
-    control_pub = nh.advertise<geometry_msgs::Twist>("/uav/control", 10);
+    // Публикация модулированной команды управления на топик control_cmd
+    control_pub = nh.advertise<geometry_msgs::Twist>("control_cmd", 10);
+
+    ROS_INFO_STREAM("DSM node initialized in namespace " << nh.getNamespace()
+                    << " with max_linear_acc=" << max_linear_acc
+                    << ", max_angular_acc=" << max_angular_acc
+                    << ", control_dt=" << control_dt);
 
     ros::Rate loop_rate(50);
     while (ros::ok())

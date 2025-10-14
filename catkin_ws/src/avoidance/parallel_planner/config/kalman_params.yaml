@@ -1,0 +1,5 @@
+initial_covariance: 1.0
+process_noise: 0.1
+measurement_noise: 0.5
+min_dt: 0.01
+frame_id: "base_link"

@@ -1,16 +1,15 @@
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
-#include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Twist.h>
-#include <tf2/LinearMath/Quaternion.h>
-#include <tf2/LinearMath/Matrix3x3.h>
+#include <geometry_msgs/TwistStamped.h>
 #include <cmath>
 #include <vector>
 
 class VFHNode {
 private:
   ros::NodeHandle nh_;
+  ros::NodeHandle pnh_;
   ros::Subscriber point_sub_;
   ros::Subscriber state_sub_;
   ros::Publisher nav_pub_;
@@ -21,35 +20,30 @@ private:
   double current_yaw_;      // текущий курс (yaw) БПЛА
 
 public:
-  VFHNode() {
+  VFHNode() : nh_(), pnh_("~") {
     // Загрузка параметров алгоритма VFH+ из Parameter Server
     // При отсутствии на Parameter Server будут использованы указанные значения по умолчанию.
-    nh_.param("histogram_bins",    num_sectors_,   72);   // число секторов (360/5°=72)
-    nh_.param("safety_distance",   safety_dist_,   5.0);  // радиус безопасности, м
-    nh_.param("max_forward_speed", forward_speed_, 1.0);  // максимальная поступательная скорость, м/с
-    nh_.param("max_yaw_rate",      max_yaw_rate_,  0.5);  // максимальная угловая скорость, рад/с
+    pnh_.param("histogram_bins",    num_sectors_,   72);   // число секторов (360/5°=72)
+    pnh_.param("safety_distance",   safety_dist_,   5.0);  // радиус безопасности, м
+    pnh_.param("max_forward_speed", forward_speed_, 1.0);  // максимальная поступательная скорость, м/с
+    pnh_.param("max_yaw_rate",      max_yaw_rate_,  0.5);  // максимальная угловая скорость, рад/с
     current_yaw_ = 0.0;
 
     // Подписка на облако точек лидара и на оценку состояния БПЛА
-    point_sub_ = nh_.subscribe("/point_cloud", 1, &VFHNode::pointCloudCallback, this);
-    state_sub_ = nh_.subscribe("/uav/state_estimate", 10, &VFHNode::stateCallback, this);
+    point_sub_ = nh_.subscribe("point_cloud", 1, &VFHNode::pointCloudCallback, this);
+    state_sub_ = nh_.subscribe("state_estimate", 10, &VFHNode::stateCallback, this);
     // Публикация команд навигации (линейная и угловая скорость движения дрона)
-    nav_pub_ = nh_.advertise<geometry_msgs::Twist>("/uav/navigation_cmd", 10);
+    nav_pub_ = nh_.advertise<geometry_msgs::Twist>("navigation_cmd", 10);
 
-    ROS_INFO("VFHNode initialized with %d histogram bins, safety_distance=%.2f, max_forward_speed=%.2f, max_yaw_rate=%.2f",
-             num_sectors_, safety_dist_, forward_speed_, max_yaw_rate_);
+    ROS_INFO_STREAM("VFHNode initialized in namespace " << nh_.getNamespace()
+                    << " with " << num_sectors_ << " histogram bins, safety_distance="
+                    << safety_dist_ << ", max_forward_speed=" << forward_speed_
+                    << ", max_yaw_rate=" << max_yaw_rate_);
   }
 
-  void stateCallback(const geometry_msgs::PoseStamped::ConstPtr& msg) {
-    // Обновляем текущий угол рыскания (yaw) дрона на основе ориентировки из одометри/оценки состояния
-    tf2::Quaternion q(msg->pose.orientation.x,
-                      msg->pose.orientation.y,
-                      msg->pose.orientation.z,
-                      msg->pose.orientation.w);
-    tf2::Matrix3x3 m(q);
-    double roll, pitch;
-    m.getRPY(roll, pitch, current_yaw_);
-    // current_yaw_ теперь хранит актуальный угол yaw БПЛА (непосредственно не используется в данном простом алгоритме)
+  void stateCallback(const geometry_msgs::TwistStamped::ConstPtr& msg) {
+    // В качестве текущего yaw используем угловую скорость вокруг оси Z из оценки состояния
+    current_yaw_ = msg->twist.angular.z;
   }
 
   void pointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg) {

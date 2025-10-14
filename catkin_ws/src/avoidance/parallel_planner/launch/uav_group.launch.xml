@@ -1,0 +1,59 @@
+<launch>
+  <arg name="uav_name"/>
+  <arg name="x" default="0"/>
+  <arg name="y" default="0"/>
+  <arg name="z" default="1"/>
+  <arg name="yaw" default="0"/>
+  <arg name="model_path" default="$(find avoidance)/sim/models/iris_stereo_camera/iris_stereo_camera.sdf"/>
+  <arg name="fcu_url"/>
+  <arg name="gcs_url" default=""/>
+  <arg name="tgt_system" default="1"/>
+  <arg name="tgt_component" default="1"/>
+  <arg name="px4_config"/>
+  <arg name="kalman_config" default="$(find parallel_planner)/config/kalman_params.yaml"/>
+  <arg name="dsm_config" default="$(find parallel_planner)/config/dsm_params.yaml"/>
+  <arg name="vfh_config" default="$(find parallel_planner)/config/vfh_params.yaml"/>
+  <arg name="octomap_resolution" default="0.2"/>
+
+  <group ns="$(arg uav_name)">
+    <param name="uav_name" value="$(arg uav_name)"/>
+
+    <rosparam command="load" file="$(arg kalman_config)" ns="kalman_filter_node"/>
+    <param name="kalman_filter_node/frame_id" value="$(arg uav_name)/base_link"/>
+    <rosparam command="load" file="$(arg dsm_config)" ns="dsm_node"/>
+    <rosparam command="load" file="$(arg vfh_config)" ns="vfh_node"/>
+
+    <node pkg="gazebo_ros" type="spawn_model" name="$(arg uav_name)_spawn_model" output="screen"
+          args="-sdf -file $(arg model_path) -model $(arg uav_name) -x $(arg x) -y $(arg y) -z $(arg z) -Y $(arg yaw)"/>
+
+    <include file="$(find mavros)/launch/px4.launch">
+      <arg name="fcu_url" value="$(arg fcu_url)"/>
+      <arg name="gcs_url" value="$(arg gcs_url)"/>
+      <arg name="tgt_system" value="$(arg tgt_system)"/>
+      <arg name="tgt_component" value="$(arg tgt_component)"/>
+      <arg name="config_yaml" value="$(arg px4_config)"/>
+    </include>
+
+    <node pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_proc" ns="stereo" output="screen"/>
+
+    <node pkg="topic_tools" type="relay" name="$(arg uav_name)_pointcloud_relay"
+          args="stereo/points2 point_cloud" output="screen"/>
+
+    <node pkg="topic_tools" type="relay" name="$(arg uav_name)_control_relay"
+          args="control_cmd mavros/setpoint_velocity/cmd_vel" output="screen"/>
+
+    <node pkg="tf" type="static_transform_publisher" name="tf_$(arg uav_name)_camera"
+          args="0 0 0 -1.57 0 -1.57 $(arg uav_name)/fcu $(arg uav_name)/camera_link 10"/>
+
+    <node pkg="parallel_planner" type="kalman_filter_node" name="kalman_filter_node" output="screen"/>
+    <node pkg="parallel_planner" type="vfh_node" name="vfh_node" output="screen"/>
+    <node pkg="parallel_planner" type="dsm_node" name="dsm_node" output="screen"/>
+
+    <node pkg="octomap_server" type="octomap_server_node" name="octomap"
+          output="screen">
+      <remap from="cloud_in" to="point_cloud"/>
+      <param name="frame_id" value="map"/>
+      <param name="resolution" value="$(arg octomap_resolution)"/>
+    </node>
+  </group>
+</launch>
