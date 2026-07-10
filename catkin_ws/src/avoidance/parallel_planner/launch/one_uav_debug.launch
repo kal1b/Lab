@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<launch>
+  <!--
+    First stabilization scenario: one PX4 SITL vehicle, one MAVROS instance,
+    and the chain Kalman -> VFH -> DSM -> Offboard control.
+
+    Run this before attempting the multi-UAV swarm launch.
+  -->
+
+  <arg name="world" default="$(find avoidance)/sim/worlds/test_city_2.world"/>
+  <arg name="vehicle" default="iris_stereo_camera"/>
+  <arg name="gui" default="true"/>
+  <arg name="debug" default="false"/>
+  <arg name="verbose" default="false"/>
+  <arg name="paused" default="false"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="world_name" value="$(arg world)"/>
+    <arg name="debug" value="$(arg debug)"/>
+    <arg name="verbose" value="$(arg verbose)"/>
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="use_sim_time" value="true"/>
+  </include>
+
+  <group ns="uav1">
+    <param name="use_sim_time" value="true"/>
+
+    <!-- PX4 SITL instance and Gazebo vehicle spawn. -->
+    <arg name="ID" value="0"/>
+    <arg name="fcu_url" default="udp://:14540@localhost:14580"/>
+
+    <include file="$(find px4)/launch/single_vehicle_spawn.launch">
+      <arg name="x" value="0"/>
+      <arg name="y" value="0"/>
+      <arg name="z" value="0"/>
+      <arg name="R" value="0"/>
+      <arg name="P" value="0"/>
+      <arg name="Y" value="0"/>
+      <arg name="vehicle" value="$(arg vehicle)"/>
+      <arg name="mavlink_udp_port" value="14560"/>
+      <arg name="mavlink_tcp_port" value="4560"/>
+      <arg name="ID" value="$(arg ID)"/>
+      <arg name="gst_udp_port" value="5600"/>
+      <arg name="video_uri" value="5600"/>
+      <arg name="mavlink_cam_udp_port" value="14530"/>
+    </include>
+
+    <include file="$(find mavros)/launch/px4.launch">
+      <arg name="fcu_url" value="$(arg fcu_url)"/>
+      <arg name="gcs_url" value=""/>
+      <arg name="tgt_system" value="1"/>
+      <arg name="tgt_component" value="1"/>
+    </include>
+
+    <!-- Stereo processing and point cloud normalization for the planner. -->
+    <node pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_proc" ns="stereo" output="screen"/>
+    <node pkg="topic_tools" type="relay" name="relay_pointcloud" args="stereo/points2 point_cloud" output="screen"/>
+
+    <node pkg="parallel_planner" type="kalman_filter_node" name="kalman_filter_node" output="screen">
+      <param name="process_noise" value="0.05"/>
+      <param name="measurement_noise" value="0.20"/>
+    </node>
+
+    <node pkg="parallel_planner" type="vfh_node" name="vfh_node" output="screen">
+      <param name="histogram_bins" value="72"/>
+      <param name="safety_distance" value="4.0"/>
+      <param name="max_forward_speed" value="1.0"/>
+      <param name="max_yaw_rate" value="0.5"/>
+    </node>
+
+    <node pkg="parallel_planner" type="dsm_node" name="dsm_node" output="screen">
+      <param name="max_linear_acc" value="1.0"/>
+      <param name="max_angular_acc" value="0.5"/>
+      <param name="max_linear_speed" value="1.5"/>
+      <param name="max_yaw_rate" value="0.6"/>
+    </node>
+
+    <node pkg="parallel_planner" type="offboard_control_node" name="offboard_control_node" output="screen">
+      <param name="target_altitude" value="2.0"/>
+      <param name="takeoff_speed" value="0.6"/>
+      <param name="command_timeout" value="0.5"/>
+      <param name="offboard_warmup_cycles" value="120"/>
+    </node>
+  </group>
+</launch>
