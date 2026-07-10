@@ -1,121 +1,123 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
-#include <geometry_msgs/TwistStamped.h>
+#include <nav_msgs/Odometry.h>
+#include <algorithm>
+#include <cmath>
 
-// Параметры ограничений (можно задать через параметрический сервер)
-double max_linear_acc = 1.0;   // максимальное линейное ускорение (м/с^2)
-double max_angular_acc = 0.5;  // максимальное угловое ускорение (рад/с^2)
+class DSMNode {
+public:
+  DSMNode()
+      : nh_(), pnh_("~"), nav_cmd_received_(false), state_received_(false),
+        last_output_valid_(false) {
+    pnh_.param("max_linear_acc", max_linear_acc_, 1.0);
+    pnh_.param("max_angular_acc", max_angular_acc_, 0.5);
+    pnh_.param("max_linear_speed", max_linear_speed_, 2.0);
+    pnh_.param("max_yaw_rate", max_yaw_rate_, 0.8);
 
-// Глобальные переменные для хранения последней полученной команды и состояния
-geometry_msgs::Twist latest_nav_cmd;
-bool nav_cmd_received = false;
+    nav_cmd_sub_ = nh_.subscribe("navigation_cmd", 10, &DSMNode::navCmdCallback, this);
+    state_sub_ = nh_.subscribe("state_estimate", 10, &DSMNode::stateCallback, this);
+    control_pub_ = nh_.advertise<geometry_msgs::Twist>("control_cmd", 10);
 
-geometry_msgs::TwistStamped latest_state;
-bool state_received = false;
+    timer_ = nh_.createTimer(ros::Duration(0.02), &DSMNode::timerCallback, this);
 
-ros::Publisher control_pub;
+    ROS_INFO("dsm_node: navigation_cmd -> control_cmd with acceleration limiting");
+  }
 
-// Функция для ограничения значения между min_val и max_val
-double clamp(double value, double min_val, double max_val)
-{
-    if (value < min_val)
-        return min_val;
-    if (value > max_val)
-        return max_val;
-    return value;
-}
+private:
+  ros::NodeHandle nh_;
+  ros::NodeHandle pnh_;
+  ros::Subscriber nav_cmd_sub_;
+  ros::Subscriber state_sub_;
+  ros::Publisher control_pub_;
+  ros::Timer timer_;
 
-// Callback для входящего топика навигационных команд (/uav/navigation_cmd)
-void navCmdCallback(const geometry_msgs::Twist::ConstPtr &msg)
-{
-    latest_nav_cmd = *msg;
-    nav_cmd_received = true;
-}
+  geometry_msgs::Twist latest_nav_cmd_;
+  nav_msgs::Odometry latest_state_;
+  geometry_msgs::Twist last_output_;
+  bool nav_cmd_received_;
+  bool state_received_;
+  bool last_output_valid_;
+  ros::Time last_time_;
 
-// Callback для оценки состояния (/uav/state_estimate)
-void stateCallback(const geometry_msgs::TwistStamped::ConstPtr &msg)
-{
-    latest_state = *msg;
-    state_received = true;
-}
+  double max_linear_acc_;
+  double max_angular_acc_;
+  double max_linear_speed_;
+  double max_yaw_rate_;
 
-// Функция модуляции команды с учётом текущего состояния и ограничений
-void modulateAndPublishCommand()
-{
-    if (!nav_cmd_received || !state_received)
-        return;
+  static double clamp(double value, double min_value, double max_value) {
+    return std::max(min_value, std::min(value, max_value));
+  }
 
-    geometry_msgs::Twist modulated_cmd;
-    // Предположим, что цикл работает на 50 Гц (dt ≈ 0.02 сек)
-    double dt = 0.02;
+  static double limitRate(double desired, double previous, double max_delta) {
+    return previous + clamp(desired - previous, -max_delta, max_delta);
+  }
 
-    // Ограничение для линейной компоненты по оси X
-    double curr_vx = latest_state.twist.linear.x;
-    double desired_vx = latest_nav_cmd.linear.x;
-    double delta_vx = desired_vx - curr_vx;
-    double max_delta_vx = max_linear_acc * dt;
-    delta_vx = clamp(delta_vx, -max_delta_vx, max_delta_vx);
-    modulated_cmd.linear.x = curr_vx + delta_vx;
+  static void limitVectorNorm(geometry_msgs::Vector3 &v, double max_norm) {
+    const double norm = std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+    if (norm > max_norm && norm > 1e-6) {
+      const double scale = max_norm / norm;
+      v.x *= scale;
+      v.y *= scale;
+      v.z *= scale;
+    }
+  }
 
-    // Ограничение для линейной компоненты по оси Y
-    double curr_vy = latest_state.twist.linear.y;
-    double desired_vy = latest_nav_cmd.linear.y;
-    double delta_vy = desired_vy - curr_vy;
-    double max_delta_vy = max_linear_acc * dt;
-    delta_vy = clamp(delta_vy, -max_delta_vy, max_delta_vy);
-    modulated_cmd.linear.y = curr_vy + delta_vy;
+  void navCmdCallback(const geometry_msgs::Twist::ConstPtr &msg) {
+    latest_nav_cmd_ = *msg;
+    nav_cmd_received_ = true;
+  }
 
-    // Ограничение для линейной компоненты по оси Z
-    double curr_vz = latest_state.twist.linear.z;
-    double desired_vz = latest_nav_cmd.linear.z;
-    double delta_vz = desired_vz - curr_vz;
-    double max_delta_vz = max_linear_acc * dt;
-    delta_vz = clamp(delta_vz, -max_delta_vz, max_delta_vz);
-    modulated_cmd.linear.z = curr_vz + delta_vz;
+  void stateCallback(const nav_msgs::Odometry::ConstPtr &msg) {
+    latest_state_ = *msg;
+    state_received_ = true;
+  }
 
-    // Ограничение для угловой компоненты по оси Z (yaw)
-    double curr_vyaw = latest_state.twist.angular.z;
-    double desired_vyaw = latest_nav_cmd.angular.z;
-    double delta_vyaw = desired_vyaw - curr_vyaw;
-    double max_delta_vyaw = max_angular_acc * dt;
-    delta_vyaw = clamp(delta_vyaw, -max_delta_vyaw, max_delta_vyaw);
-    modulated_cmd.angular.z = curr_vyaw + delta_vyaw;
-
-    // Остальные угловые компоненты можно оставить без ограничения или добавить аналогичные проверки
-    modulated_cmd.angular.x = latest_nav_cmd.angular.x;
-    modulated_cmd.angular.y = latest_nav_cmd.angular.y;
-
-    // Публикуем модулированную команду
-    control_pub.publish(modulated_cmd);
-}
-
-int main(int argc, char **argv)
-{
-    ros::init(argc, argv, "dsm_node");
-    ros::NodeHandle nh;
-    ros::NodeHandle pnh("~");
-
-    // Чтение параметров ограничений из параметрического сервера
-    pnh.param("max_linear_acc", max_linear_acc, 1.0);
-    pnh.param("max_angular_acc", max_angular_acc, 0.5);
-
-    // Подписка на входные топики:
-    // 1. Навигационные команды от планировщика (/uav/navigation_cmd)
-    ros::Subscriber nav_cmd_sub = nh.subscribe("/uav/navigation_cmd", 10, navCmdCallback);
-    // 2. Оценка состояния от фильтра Калмана (/uav/state_estimate)
-    ros::Subscriber state_sub = nh.subscribe("/uav/state_estimate", 10, stateCallback);
-
-    // Публикация модулированной команды управления на топик /uav/control
-    control_pub = nh.advertise<geometry_msgs::Twist>("/uav/control", 10);
-
-    ros::Rate loop_rate(50);
-    while (ros::ok())
-    {
-        ros::spinOnce();
-        modulateAndPublishCommand();
-        loop_rate.sleep();
+  void timerCallback(const ros::TimerEvent &) {
+    if (!nav_cmd_received_ || !state_received_) {
+      return;
     }
 
-    return 0;
-}
+    const ros::Time now = ros::Time::now();
+    double dt = 0.02;
+    if (!last_time_.isZero()) {
+      dt = (now - last_time_).toSec();
+      if (dt <= 0.0 || dt > 0.5) {
+        dt = 0.02;
+      }
+    }
+    last_time_ = now;
 
+    geometry_msgs::Twist previous;
+    if (last_output_valid_) {
+      previous = last_output_;
+    } else {
+      previous.linear = latest_state_.twist.twist.linear;
+      previous.angular = latest_state_.twist.twist.angular;
+      last_output_valid_ = true;
+    }
+
+    geometry_msgs::Twist cmd;
+    const double max_dv = max_linear_acc_ * dt;
+    const double max_dw = max_angular_acc_ * dt;
+
+    cmd.linear.x = limitRate(latest_nav_cmd_.linear.x, previous.linear.x, max_dv);
+    cmd.linear.y = limitRate(latest_nav_cmd_.linear.y, previous.linear.y, max_dv);
+    cmd.linear.z = limitRate(latest_nav_cmd_.linear.z, previous.linear.z, max_dv);
+    limitVectorNorm(cmd.linear, max_linear_speed_);
+
+    cmd.angular.x = 0.0;
+    cmd.angular.y = 0.0;
+    cmd.angular.z = limitRate(latest_nav_cmd_.angular.z, previous.angular.z, max_dw);
+    cmd.angular.z = clamp(cmd.angular.z, -max_yaw_rate_, max_yaw_rate_);
+
+    control_pub_.publish(cmd);
+    last_output_ = cmd;
+  }
+};
+
+int main(int argc, char **argv) {
+  ros::init(argc, argv, "dsm_node");
+  DSMNode node;
+  ros::spin();
+  return 0;
+}
